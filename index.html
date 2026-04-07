@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kinetic Scholar - Professional</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body class="has-login">
+    
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="active-screen">
+      <div class="login-card glass-card pulse-hover">
+        <div class="logo-area" style="justify-content: center;">
+          <i class="ph ph-translate logo-icon"></i>
+          <h1>Kinetic Scholar</h1>
+        </div>
+        <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 2rem;">Advance humanity. Connect cultures.</p>
+        
+        <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+          <div id="g_id_onload"
+               data-client_id="200076593861-vl75jta8td7r59epgrhfp2jtu7r5so5i.apps.googleusercontent.com"
+               data-context="signin"
+               data-ux_mode="popup"
+               data-callback="handleCredentialResponse"
+               data-auto_prompt="false">
+          </div>
+          <div class="g_id_signin"
+               data-type="standard"
+               data-shape="rectangular"
+               data-theme="outline"
+               data-text="continue_with"
+               data-size="large"
+               data-logo_alignment="left">
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center; margin-top: 0.5rem;">
+          <button id="guest-login-btn" class="btn btn-outline" style="width: 100%; border-style: dashed; color: var(--color-primary-light);">
+            <i class="ph ph-user-circle-plus"></i> Launch Guest Preview
+          </button>
+          <p style="text-align: center; font-size: 0.85rem; color: var(--color-text-muted);">
+            <i class="ph ph-shield-check text-primary"></i> Enterprise Encrypted
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="app" style="display: none;">
+      <nav id="sidebar">
+        <div class="logo-area">
+          <i class="ph ph-translate logo-icon"></i>
+          <h1>Kinetic Scholar</h1>
+        </div>
+        
+        <ul class="nav-links">
+          <li><a href="#" data-target="home" class="active"><i class="ph ph-squares-four"></i><span>Dashboard</span></a></li>
+          <li><a href="#" data-target="workspace"><i class="ph ph-pencil-simple-line"></i><span>Workspace</span></a></li>
+          <li><a href="#" data-target="review"><i class="ph ph-users-three"></i><span>Peer Review</span></a></li>
+          <li><a href="#" data-target="leaderboard"><i class="ph ph-trophy"></i><span>Leaderboard</span></a></li>
+          <li><a href="#" data-target="shop"><i class="ph ph-storefront"></i><span>Rewards Shop</span></a></li>
+          <li><a href="#" data-target="explorer"><i class="ph ph-globe-hemisphere-west"></i><span>Languages</span></a></li>
+          <li><a href="#" data-target="profile"><i class="ph ph-user-gear"></i><span>Profile</span></a></li>
+        </ul>
+        
+        <div style="flex: 1"></div>
+        <button id="logout-btn" class="btn btn-outline" style="margin-bottom: 1rem; width: 100%;"><i class="ph ph-sign-out"></i> Logout</button>
+
+        <div class="user-preview">
+          <img src="" id="nav-user-avatar" alt="Avatar" class="avatar" referrerpolicy="no-referrer" />
+          <div class="user-info">
+            <strong id="nav-user-name">Loading...</strong>
+            <span class="level" id="nav-user-level">-</span>
+          </div>
+        </div>
+      </nav>
+
+      <main id="main-content">
+        
+        <!-- HOME SCREEN -->
+        <section id="home" class="screen main-app-screen active-screen">
+          <header class="screen-header">
+            <div>
+              <h2>Dashboard Hub</h2>
+              <p id="dashboard-subtitle">Keep the momentum going!</p>
+            </div>
+            <button id="btn-new-translation" class="btn btn-primary"><i class="ph ph-rocket-launch"></i> Launch Workspace</button>
+          </header>
+          
+          <div class="dashboard-grid">
+            <div class="glass-card stat-card pulse-hover">
+              <div class="stat-icon"><i class="ph ph-translate"></i></div>
+              <div class="stat-data"><h3 id="stat-global">0</h3><p>Global Tasks</p></div>
+            </div>
+            <div class="glass-card stat-card pulse-hover">
+              <div class="stat-icon"><i class="ph ph-check-circle"></i></div>
+              <div class="stat-data"><h3 id="stat-contributions">0</h3><p>Contributions</p></div>
+            </div>
+            <div class="glass-card stat-card pulse-hover">
+              <div class="stat-icon"><i class="ph ph-fire"></i></div>
+              <div class="stat-data"><h3 id="stat-streak">1 Days</h3><p>Active Streak</p></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PEER REVIEW SCREEN -->
+        <section id="review" class="screen main-app-screen">
+          <header class="screen-header">
+            <div>
+              <h2>Peer Review</h2>
+              <p>Upvote the most accurate human translations to curate the best data.</p>
+            </div>
+          </header>
+          <div class="review-feed" id="review-feed-container">
+            <!-- Populated dynamically via main.js -->
+            <div style="text-align:center; padding: 2rem;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem"></i></div>
+          </div>
+        </section>
+
+        <!-- REWARDS SHOP SCREEN -->
+        <section id="shop" class="screen main-app-screen">
+            <header class="screen-header">
+              <div>
+                <h2>Scholar Shop</h2>
+                <p>Spend your hard-earned XP to unlock exclusive profile rewards.</p>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary-light); background: var(--glass-bg); padding: 0.5rem 1rem; border-radius: 12px;">
+                <i class="ph ph-coin"></i> <span id="shop-wallet">0</span> XP
+              </div>
+            </header>
+            
+            <div class="shop-grid">
+                <div class="glass-card shop-card pulse-hover">
+                    <div class="shop-icon">❄️</div>
+                    <h3>Streak Freeze</h3>
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem;">Miss a day? Keep your streak intact automatically.</p>
+                    <div class="shop-cost"><i class="ph ph-coin"></i> 200</div>
+                    <button class="btn btn-outline select-shop-item" data-item="streak_freeze" data-cost="200" style="width: 100%; margin-top: auto">Unlock</button>
+                </div>
+                <div class="glass-card shop-card pulse-hover" style="border-color: rgba(241, 196, 15, 0.3)">
+                    <div class="shop-icon">👑</div>
+                    <h3>Golden Theme</h3>
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem;">Paint the entire application UI inside a premium Golden Hue.</p>
+                    <div class="shop-cost" style="color: #f1c40f"><i class="ph ph-coin"></i> 1000</div>
+                    <button class="btn btn-outline select-shop-item" data-item="golden_name" data-cost="1000" style="width: 100%; margin-top: auto">Unlock</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TRANSLATION WORKSPACE -->
+        <section id="workspace" class="screen main-app-screen">
+          <header class="screen-header">
+            <div>
+              <h2>Workspace Active</h2>
+              <p>Translate contextually to assist the language models.</p>
+            </div>
+            <div class="btn btn-outline">
+              English <i class="ph ph-arrows-left-right text-primary" style="margin: 0 0.5rem"></i> Italian
+            </div>
+          </header>
+
+          <div class="workspace-area">
+            <div class="glass-card editor source-text">
+              <div style="display: flex; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i> SOURCE TEXT (English)</div>
+              <textarea placeholder="Loading connection..." readonly id="ws-source"></textarea>
+            </div>
+            <div class="glass-card editor automated-text" style="background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.2);">
+              <div style="display: flex; gap: 0.5rem; color: var(--color-primary-light); font-size: 0.85rem; margin-bottom: 0.5rem; align-items: center;">
+                <i class="ph ph-robot"></i> AUTOMATED MODEL <span style="margin-left: auto; background: rgba(99, 102, 241, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Premium</span>
+              </div>
+              <textarea placeholder="Awaiting API..." readonly id="ws-ai"></textarea>
+            </div>
+            <div class="glass-card editor target-text" style="background: rgba(46, 204, 113, 0.05); border-color: rgba(46, 204, 113, 0.3);">
+              <div style="display: flex; gap: 0.5rem; color: var(--color-success); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="ph ph-pencil-simple-line"></i> CROWDSOURCED INPUT</div>
+              <textarea placeholder="Enter human translation..." id="ws-input"></textarea>
+              <div class="editor-actions">
+                <button class="btn btn-primary submit-btn">Submit Segment <i class="ph ph-paper-plane-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEADERBOARD -->
+        <section id="leaderboard" class="screen main-app-screen">
+          <header class="screen-header">
+            <div>
+              <h2>Global Rankings</h2>
+              <p>Elite contributors securing language preservation.</p>
+            </div>
+          </header>
+          <div class="glass-card" style="max-width: 700px; margin: 0 auto; padding: 0;">
+            <ul class="rank-list" style="list-style: none;"></ul>
+          </div>
+        </section>
+
+        <!-- PROFILE -->
+        <section id="profile" class="screen main-app-screen">
+           <header class="screen-header"><h2>Profile Configuration</h2></header>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
+            <div>
+              <div class="glass-card" style="display:flex; align-items:center; gap: 1.5rem; margin-bottom: 1.5rem;">
+                  <img src="" id="profile-picture" alt="Avatar" style="width: 100px; height: 100px; border-radius: 20px; object-fit: cover;" referrerpolicy="no-referrer"/>
+                  <div>
+                    <h2 id="profile-display-name">Alex Mercer</h2>
+                    <p id="profile-display-email" style="color: var(--color-primary-light);">Email</p>
+                    <p id="profile-display-langs" style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Native: English</p>
+                  </div>
+              </div>
+              <div class="glass-card">
+                  <h3 class="mb-2">Your Impact</h3>
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <span id="profile-level-badge" style="font-weight: 700; font-size: 1.25rem;">Level 1</span>
+                      <span id="profile-xp-badge" style="color: var(--color-primary-light); font-weight: 700;"><i class="ph ph-star"></i> 0 XP</span>
+                  </div>
+              </div>
+            </div>
+            <div class="glass-card">
+              <h3 style="margin-bottom: 1.5rem;">Edit Properties</h3>
+              <form id="profile-edit-form">
+                <div class="form-group"><label>Display Name</label><input type="text" id="edit-name" required /></div>
+                <div class="form-group">
+                  <label>Native Language</label>
+                  <select id="edit-native-lang">
+                    <option value="English">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="French">French</option>
+                    <option value="Italian">Italian</option>
+                    <option value="German">German</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Target Specialization</label>
+                  <select id="edit-learning-lang">
+                    <option value="Italian">Italian</option>
+                    <option value="German">German</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="Korean">Korean</option>
+                    <option value="Arabic">Arabic</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="btn-save-profile" style="width: 100%; margin-top: 1rem;">Deploy Changes</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXPLORER -->
+        <section id="explorer" class="screen main-app-screen">
+          <header class="screen-header">
+            <div><h2>Pioneering Horizons</h2><p>Unlock new structural paradigms across the globe.</p></div>
+          </header>
+          <div class="explorer-grid">
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #27ae60"><div class="lang-flag">🇮🇹</div><h3>Italian</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e74c3c"><div class="lang-flag">🇪🇸</div><h3>Spanish</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e67e22"><div class="lang-flag">🇯🇵</div><h3>Japanese</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #3498db"><div class="lang-flag">🇫🇷</div><h3>French</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #9b59b6"><div class="lang-flag">🇩🇪</div><h3>German</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #34495e"><div class="lang-flag">🇰🇷</div><h3>Korean</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </body>
+</html>
