@@ -13,6 +13,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Health check before anything else
+app.get('/health', (req, res) => res.send('OK'));
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const DB_PATH = process.env.DATABASE_URL || './database.sqlite';
