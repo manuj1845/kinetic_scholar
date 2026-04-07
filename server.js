@@ -294,6 +294,6 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Kinetic Scholar Live on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Kinetic Scholar Live on port ${PORT} (on 0.0.0.0)`);
 });
