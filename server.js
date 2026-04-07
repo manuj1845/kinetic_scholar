@@ -15,26 +15,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const DB_PATH = process.env.DATABASE_URL || './database.sqlite';
 
-// Allow configured CORS origins or all origins in dev
+// Security and Logging
+app.use(helmet({
+  contentSecurityPolicy: false, // Required for Google Sign-In button
+}));
+
+// CORS Configuration
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',')
   : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
-app.use(helmet({
-  contentSecurityPolicy: false, // Allow Google Sign-In scripts
-}));
 app.use(cors({
   origin: IS_PRODUCTION ? allowedOrigins : true,
   credentials: true
 }));
+
 app.use(express.json());
 app.use(IS_PRODUCTION ? morgan('combined') : morgan('dev'));
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
-const db = new sqlite3.Database('./database.sqlite', (err) => {
+const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) console.error("Database connection error:", err);
-  else console.log("Connected to robust SQLite Database.");
+  else console.log(`Connected to SQLite Database at ${DB_PATH}`);
 });
 
 db.serialize(() => {
@@ -53,6 +57,8 @@ db.serialize(() => {
     learningLanguages TEXT DEFAULT 'Italian',
     theme TEXT DEFAULT 'default'
   )`);
+  
+  // Migration for theme if it doesn't exist
   db.run("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'default'", (err) => { });
 
   db.run(`CREATE TABLE IF NOT EXISTS source_texts (
@@ -233,7 +239,6 @@ app.post('/api/translations', authGuard, (req, res) => {
     });
 });
 
-// PEER REVIEWS
 app.get('/api/reviews', authGuard, (req, res) => {
   db.all(`
     SELECT u.id, u.italian AS translatedText, s.english AS sourceText, usr.name, usr.avatar, u.upvotes 
@@ -244,7 +249,6 @@ app.get('/api/reviews', authGuard, (req, res) => {
     ORDER BY u.createdAt DESC LIMIT 10
   `, [req.user.id], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    // Check if user voted for these
     db.all(`SELECT translationId FROM translation_votes WHERE userId = ?`, [req.user.id], (err, votedRows) => {
       const votedIds = votedRows ? votedRows.map(v => v.translationId) : [];
       const result = rows.map(r => ({ ...r, hasVoted: votedIds.includes(r.id) }));
@@ -258,26 +262,17 @@ app.post('/api/translations/:id/vote', authGuard, (req, res) => {
   db.run("INSERT INTO translation_votes (userId, translationId, voteType) VALUES (?, ?, 1)", [req.user.id, transId], function (err) {
     if (err) return res.status(400).json({ success: false, message: "Already voted" });
     db.run("UPDATE user_translations SET upvotes = upvotes + 1 WHERE id = ?", [transId]);
-
-    // Reward the translator for getting upvoted
     db.get("SELECT translatedBy FROM user_translations WHERE id = ?", [transId], (err, t) => {
       if (t) db.run("UPDATE users SET xp = xp + 10 WHERE id = ?", [t.translatedBy]);
     });
-
     res.json({ success: true });
   });
 });
 
-// SHOP ROUTE
 app.post('/api/shop/buy', authGuard, (req, res) => {
   const { cost, itemName } = req.body;
-
-  if (req.user.xp < cost) {
-    return res.status(400).json({ error: "Insufficient XP. Keep translating to earn more!" });
-  }
-
+  if (req.user.xp < cost) return res.status(400).json({ error: "Insufficient XP" });
   const newXp = req.user.xp - cost;
-
   if (itemName === 'streak_freeze') {
     db.run("UPDATE users SET xp = ? WHERE id = ?", [newXp, req.user.id], (err) => {
       if (err) return res.status(500).json({ error: "Purchase Failed" });
@@ -293,12 +288,12 @@ app.post('/api/shop/buy', authGuard, (req, res) => {
   }
 });
 
-// Unified deployment routing
+// Production Routing
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Professional API & App running securely on port ${PORT}`);
+  console.log(`Kinetic Scholar Live on port ${PORT}`);
 });
