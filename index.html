@@ -107,6 +107,40 @@
               <div class="stat-data"><h3 id="stat-streak">1 Days</h3><p>Active Streak</p></div>
             </div>
           </div>
+
+          <div class="glass-card pulse-hover" style="margin-top: 2.5rem; position: relative; overflow: hidden; border-top: 2px solid var(--color-primary-light);">
+            <!-- Premium background glow effect -->
+            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--color-primary); filter: blur(80px); opacity: 0.4; border-radius: 50%;"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; position: relative; z-index: 1;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem; color: #fff; margin: 0; font-size: 1.25rem;">
+                    <i class="ph ph-magic-wand" style="color: var(--color-primary-light);"></i> AI Translation Hub
+                </h3>
+                <span style="font-size: 0.65rem; background: rgba(99,102,241,0.2); color: var(--color-primary-light); padding: 0.35rem 0.6rem; border-radius: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;"><i class="ph ph-sparkle"></i> Neural Engine</span>
+            </div>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; position: relative; z-index: 1;">Generate instantaneous structural translations for free. Your requests safely enter our transparent crowdsource database for global human refinement.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 1;">
+               <textarea id="ai-translate-input" placeholder="Type an English phrase here to see the magic..." style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 1.25rem; resize: vertical; outline: none; font-family: 'Inter', sans-serif; font-size: 1rem; transition: all 0.3s ease;" rows="3" onfocus="this.style.borderColor='var(--color-primary-light)'; this.style.boxShadow='0 0 0 2px rgba(99,102,241,0.2)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';"></textarea>
+               
+               <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem;">
+                 <select id="ai-translate-lang" style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onfocus="this.style.borderColor='var(--color-primary-light)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                   <option value="it" style="background:#1e1e2f;">🇮🇹 Italian</option>
+                   <option value="es" style="background:#1e1e2f;">🇪🇸 Spanish</option>
+                   <option value="fr" style="background:#1e1e2f;">🇫🇷 French</option>
+                   <option value="de" style="background:#1e1e2f;">🇩🇪 German</option>
+                   <option value="ja" style="background:#1e1e2f;">🇯🇵 Japanese</option>
+                   <option value="ko" style="background:#1e1e2f;">🇰🇷 Korean</option>
+                 </select>
+                 
+                 <button id="btn-ai-translate" class="btn btn-primary" style="flex: 1; padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;"><i class="ph ph-lightning" style="margin-right: 0.5rem;"></i> Request Translation</button>
+               </div>
+
+               <div id="ai-translate-result" style="display: none; padding: 1.25rem; background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; font-size: 1.05rem; color: #fff; line-height: 1.6; margin-top: 0.5rem; position: relative;">
+                  <!-- Populated in JS, we will add a nice icon via JS but this acts as container -->
+               </div>
+            </div>
+          </div>
         </section>
 
         <!-- PEER REVIEW SCREEN -->
@@ -160,8 +194,8 @@
               <h2>Workspace Active</h2>
               <p>Translate contextually to assist the language models.</p>
             </div>
-            <div class="btn btn-outline">
-              English <i class="ph ph-arrows-left-right text-primary" style="margin: 0 0.5rem"></i> Italian
+            <div class="btn btn-outline" id="workspace-lang-display">
+              English <i class="ph ph-arrows-left-right text-primary" style="margin: 0 0.5rem"></i> <span id="ws-target-lang-label">Italian</span>
             </div>
           </header>
 
@@ -256,12 +290,12 @@
             <div><h2>Pioneering Horizons</h2><p>Unlock new structural paradigms across the globe.</p></div>
           </header>
           <div class="explorer-grid">
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #27ae60"><div class="lang-flag">🇮🇹</div><h3>Italian</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e74c3c"><div class="lang-flag">🇪🇸</div><h3>Spanish</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e67e22"><div class="lang-flag">🇯🇵</div><h3>Japanese</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #3498db"><div class="lang-flag">🇫🇷</div><h3>French</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #9b59b6"><div class="lang-flag">🇩🇪</div><h3>German</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #34495e"><div class="lang-flag">🇰🇷</div><h3>Korean</h3><button class="btn btn-outline nav-redirect-workspace" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #27ae60"><div class="lang-flag">🇮🇹</div><h3>Italian</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="it" data-name="Italian" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e74c3c"><div class="lang-flag">🇪🇸</div><h3>Spanish</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="es" data-name="Spanish" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e67e22"><div class="lang-flag">🇯🇵</div><h3>Japanese</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="ja" data-name="Japanese" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #3498db"><div class="lang-flag">🇫🇷</div><h3>French</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="fr" data-name="French" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #9b59b6"><div class="lang-flag">🇩🇪</div><h3>German</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="de" data-name="German" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #34495e"><div class="lang-flag">🇰🇷</div><h3>Korean</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="ko" data-name="Korean" style="width:100%; margin-top:auto;">Translate Segment</button></div>
           </div>
         </section>
 

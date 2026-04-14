@@ -4,6 +4,8 @@ const API_BASE = '/api';
 let currentActiveTranslationId = null;
 let authToken = localStorage.getItem('token');
 let currentTheme = 'default';
+let activeLangCode = 'it';
+let activeLangName = 'Italian';
 
 document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
@@ -22,13 +24,59 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelectorAll('.nav-redirect-workspace').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      const lang = e.target.getAttribute('data-lang');
+      const name = e.target.getAttribute('data-name');
+      if (lang && name) {
+        activeLangCode = lang;
+        activeLangName = name;
+        document.getElementById('ws-target-lang-label').innerText = name;
+      }
       document.querySelector('.nav-links a[data-target="workspace"]').click();
     });
   });
 
   setupProfileEdit();
   setupShopActions();
+
+  document.getElementById('btn-ai-translate')?.addEventListener('click', async () => {
+    const inputField = document.getElementById('ai-translate-input');
+    const langSelect = document.getElementById('ai-translate-lang');
+    const resultDiv = document.getElementById('ai-translate-result');
+    const btn = document.getElementById('btn-ai-translate');
+    const text = inputField.value.trim();
+    const targetLang = langSelect.value;
+    const targetLangName = langSelect.options[langSelect.selectedIndex].text;
+    
+    if (!text) {
+      inputField.style.borderColor = 'var(--color-danger)';
+      setTimeout(() => inputField.style.borderColor = 'var(--glass-border)', 1000);
+      return;
+    }
+
+    const ogText = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Translating...';
+    try {
+      const res = await fetch(`${API_BASE}/translate/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify({ text, targetLang })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `<i class="ph ph-check-circle" style="color: var(--color-success); margin-right: 0.5rem; font-size: 1.2rem; vertical-align: middle;"></i><strong style="color: #cbd5e1; font-weight: 500; font-size: 0.95rem;">${targetLangName}:</strong> <span style="font-weight: 600; letter-spacing: 0.2px;">${data.aiTranslation}</span>`;
+        inputField.value = ''; // clear
+      } else {
+        alert("Failed to get AI translation.");
+      }
+    } catch(err) {
+      alert("Network error.");
+    } finally {
+      btn.innerHTML = ogText;
+    }
+  });
 
   document.getElementById('guest-login-btn')?.addEventListener('click', async () => {
     const btn = document.getElementById('guest-login-btn');
@@ -244,7 +292,7 @@ function setupTranslationSubmit() {
       const res = await fetch(`${API_BASE}/translations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-        body: JSON.stringify({ sourceId: currentActiveTranslationId, text })
+        body: JSON.stringify({ sourceId: currentActiveTranslationId, text, targetLanguage: activeLangCode })
       });
       if (res.ok) {
         freshBtn.innerHTML = '<i class="ph ph-check-circle"></i> Perfect +50 XP';

@@ -60,9 +60,11 @@ db.serialize(() => {
     learningLanguages TEXT DEFAULT 'Italian',
     theme TEXT DEFAULT 'default'
   )`);
-  
-  // Migration for theme if it doesn't exist
+
+  // Migration for theme and language columns
   db.run("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'default'", (err) => { });
+  db.run("ALTER TABLE source_texts ADD COLUMN targetLanguage TEXT DEFAULT 'it'", (err) => { });
+  db.run("ALTER TABLE user_translations ADD COLUMN targetLanguage TEXT DEFAULT 'it'", (err) => { });
 
   db.run(`CREATE TABLE IF NOT EXISTS source_texts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -226,9 +228,9 @@ app.get('/api/tasks/pending', authGuard, (req, res) => {
 });
 
 app.post('/api/translations', authGuard, (req, res) => {
-  const { sourceId, text } = req.body;
-  db.run("INSERT INTO user_translations (sourceId, italian, translatedBy) VALUES (?, ?, ?)",
-    [sourceId, text, req.user.id], function (err) {
+  const { sourceId, text, targetLanguage = 'it' } = req.body;
+  db.run("INSERT INTO user_translations (sourceId, italian, translatedBy, targetLanguage) VALUES (?, ?, ?, ?)",
+    [sourceId, text, req.user.id, targetLanguage], function (err) {
       if (err) return res.status(500).json({ error: err.message });
 
       const newXp = req.user.xp + 50;
@@ -240,6 +242,32 @@ app.post('/api/translations', authGuard, (req, res) => {
           res.json({ success: true, newXp, contributions: newContributions });
         });
     });
+});
+
+app.post('/api/translate/request', authGuard, async (req, res) => {
+  const { text, targetLang = 'it' } = req.body;
+  if (!text) return res.status(400).json({ error: "Missing text" });
+
+  try {
+    // Free AI Translation API (MyMemory)
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    let translatedText = data.responseData.translatedText;
+    if (!translatedText || translatedText.includes("NO QUERY SPECIFIED")) {
+      translatedText = "Translation error fallback.";
+    }
+
+    // Add to crowdsourced queue
+    db.run("INSERT INTO source_texts (english, automatedItalian, submitterId, targetLanguage) VALUES (?, ?, ?, ?)",
+      [text, translatedText, req.user.id, targetLang], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, aiTranslation: translatedText });
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Translation API failed" });
+  }
 });
 
 app.get('/api/reviews', authGuard, (req, res) => {
