@@ -7,6 +7,9 @@ import sqlite3 from 'sqlite3';
 import { OAuth2Client } from 'google-auth-library';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import stringSimilarity from 'string-similarity';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +40,24 @@ app.use(cors({
 
 app.use(express.json());
 app.use(IS_PRODUCTION ? morgan('combined') : morgan('dev'));
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: IS_PRODUCTION ? allowedOrigins : true,
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on('connection', (socket) => {
+  socket.on('join-workspace', (sourceId) => {
+    socket.join(`workspace-${sourceId}`);
+  });
+  
+  socket.on('text-change', (data) => {
+    socket.to(`workspace-${data.sourceId}`).emit('sync-text', data);
+  });
+});
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 const db = new sqlite3.Database(DB_PATH, (err) => {
@@ -101,6 +122,14 @@ db.serialize(() => {
   db.run("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'default'", () => {});
   db.run("ALTER TABLE source_texts ADD COLUMN targetLanguage TEXT DEFAULT 'it'", () => {});
   db.run("ALTER TABLE user_translations ADD COLUMN targetLanguage TEXT DEFAULT 'it'", () => {});
+  db.run("ALTER TABLE user_translations ADD COLUMN confidenceScore INTEGER DEFAULT 0", () => {});
+  db.run("ALTER TABLE user_translations ADD COLUMN verificationStatus TEXT DEFAULT 'pending'", () => {});
+  db.run("ALTER TABLE source_texts ADD COLUMN bountyXP INTEGER DEFAULT 0", () => {});
+
+  // Periodically increase bounty on unanswered or unverified texts
+  setInterval(() => {
+    db.run("UPDATE source_texts SET bountyXP = bountyXP + 5 WHERE id NOT IN (SELECT sourceId FROM user_translations WHERE verificationStatus IN ('auto-approved', 'approved'))");
+  }, 1000 * 60 * 15); // Every 15 mins for demonstration
 
   db.get("SELECT COUNT(*) AS count FROM source_texts", (err, row) => {
     if (row && row.count === 0) {
@@ -254,7 +283,8 @@ app.get('/api/tasks/pending', authGuard, (req, res) => {
   db.get(`
     SELECT s.* FROM source_texts s 
     LEFT JOIN user_translations u ON s.id = u.sourceId AND u.translatedBy = ? 
-    WHERE u.id IS NULL LIMIT 1
+    WHERE u.id IS NULL 
+    ORDER BY s.bountyXP DESC, RANDOM() LIMIT 1
   `, [req.user.id], (err, row) => {
     if (!row) {
       db.get("SELECT * FROM source_texts ORDER BY RANDOM() LIMIT 1", (err, fallback) => res.json(fallback));
@@ -266,19 +296,45 @@ app.get('/api/tasks/pending', authGuard, (req, res) => {
 
 app.post('/api/translations', authGuard, (req, res) => {
   const { sourceId, text, targetLanguage = 'it' } = req.body;
-  db.run("INSERT INTO user_translations (sourceId, italian, translatedBy, targetLanguage) VALUES (?, ?, ?, ?)",
-    [sourceId, text, req.user.id, targetLanguage], function (err) {
-      if (err) return res.status(500).json({ error: err.message });
+  
+  db.get("SELECT automatedItalian FROM source_texts WHERE id = ?", [sourceId], (err, row) => {
+    let confidenceScore = 50;
+    let status = 'pending';
+    
+    if (row && row.automatedItalian) {
+      const similarity = stringSimilarity.compareTwoStrings(row.automatedItalian.toLowerCase(), text.toLowerCase());
+      confidenceScore = Math.floor(similarity * 100);
+      
+      if (similarity > 0.90) {
+        status = 'auto-approved';
+      } else if (similarity < 0.35) {
+        status = 'needs-review';
+      } else {
+        status = 'pending';
+      }
+    }
 
-      const newXp = req.user.xp + 50;
-      const newLevel = Math.floor(newXp / 500) + 1;
-      const newContributions = req.user.contributions + 1;
+    db.get("SELECT bountyXP FROM source_texts WHERE id = ?", [sourceId], (err, sRow) => {
+      const bounty = sRow?.bountyXP || 0;
 
-      db.run("UPDATE users SET xp = ?, level = ?, contributions = ? WHERE id = ?",
-        [newXp, newLevel, newContributions, req.user.id], (err) => {
-          res.json({ success: true, newXp, contributions: newContributions });
+      db.run("INSERT INTO user_translations (sourceId, italian, translatedBy, targetLanguage, confidenceScore, verificationStatus) VALUES (?, ?, ?, ?, ?, ?)",
+        [sourceId, text, req.user.id, targetLanguage, confidenceScore, status], function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+
+          const newXp = req.user.xp + 50 + bounty;
+          const newLevel = Math.floor(newXp / 500) + 1;
+          const newContributions = req.user.contributions + 1;
+
+          db.run("UPDATE users SET xp = ?, level = ?, contributions = ? WHERE id = ?",
+            [newXp, newLevel, newContributions, req.user.id], (err) => {
+              if (bounty > 0) {
+                db.run("UPDATE source_texts SET bountyXP = 0 WHERE id = ?", [sourceId]);
+              }
+              res.json({ success: true, newXp, contributions: newContributions, confidenceScore, status, bountyWon: bounty });
+            });
         });
     });
+  });
 });
 
 // ─── AI TRANSLATION ─────────────────────────────────────────────
@@ -336,11 +392,11 @@ app.post('/api/translate/request', authGuard, async (req, res) => {
 // ─── REVIEWS ────────────────────────────────────────────────────
 app.get('/api/reviews', authGuard, (req, res) => {
   db.all(`
-    SELECT u.id, u.italian AS translatedText, s.english AS sourceText, usr.name, usr.avatar, u.upvotes, u.targetLanguage
+    SELECT u.id, u.italian AS translatedText, s.english AS sourceText, usr.name, usr.avatar, u.upvotes, u.targetLanguage, u.confidenceScore, u.verificationStatus
     FROM user_translations u 
     JOIN source_texts s ON u.sourceId = s.id 
     JOIN users usr ON u.translatedBy = usr.id
-    WHERE u.translatedBy != ?
+    WHERE u.translatedBy != ? AND u.verificationStatus != 'auto-approved'
     ORDER BY u.createdAt DESC LIMIT 10
   `, [req.user.id], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -354,13 +410,25 @@ app.get('/api/reviews', authGuard, (req, res) => {
 
 app.post('/api/translations/:id/vote', authGuard, (req, res) => {
   const transId = req.params.id;
-  db.run("INSERT INTO translation_votes (userId, translationId, voteType) VALUES (?, ?, 1)", [req.user.id, transId], function (err) {
+  const isTrusted = req.user.level >= 5;
+  const voteWeight = isTrusted ? 3 : 1;
+
+  db.run("INSERT INTO translation_votes (userId, translationId, voteType) VALUES (?, ?, ?)", [req.user.id, transId, voteWeight], function (err) {
     if (err) return res.status(400).json({ success: false, message: "Already voted" });
-    db.run("UPDATE user_translations SET upvotes = upvotes + 1 WHERE id = ?", [transId]);
-    db.get("SELECT translatedBy FROM user_translations WHERE id = ?", [transId], (err, t) => {
-      if (t) db.run("UPDATE users SET xp = xp + 10 WHERE id = ?", [t.translatedBy]);
+    
+    db.run("UPDATE user_translations SET upvotes = upvotes + ? WHERE id = ?", [voteWeight, transId]);
+    
+    db.get("SELECT upvotes FROM user_translations WHERE id = ?", [transId], (err, row) => {
+      if (row && row.upvotes >= 5) {
+        db.run("UPDATE user_translations SET verificationStatus = 'approved' WHERE id = ?", [transId]);
+      }
     });
-    res.json({ success: true });
+
+    db.get("SELECT translatedBy FROM user_translations WHERE id = ?", [transId], (err, t) => {
+      if (t) db.run("UPDATE users SET xp = xp + ? WHERE id = ?", [10 * voteWeight, t.translatedBy]);
+    });
+    
+    res.json({ success: true, voteWeight, isTrusted });
   });
 });
 
@@ -390,6 +458,6 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Kinetic Scholar Live on port ${PORT} (on 0.0.0.0)`);
 });

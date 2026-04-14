@@ -162,6 +162,12 @@ function setupAITranslation() {
     }
   });
 
+  // TTS in AI Hub
+  document.getElementById('btn-tts-result')?.addEventListener('click', () => {
+    const text = resultText?.innerText;
+    if (text) playTTS(text, langSelect.value);
+  });
+
   translateBtn.addEventListener('click', async () => {
     const text = inputField.value.trim();
     const targetLang = langSelect.value;
@@ -214,6 +220,15 @@ function setupAITranslation() {
       translateBtn.click();
     }
   });
+}
+
+// ─── TEXT TO SPEECH ──────────────────────────────────────────────
+function playTTS(text, langCode = 'en') {
+  if (!text) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = langCode;
+  window.speechSynthesis.cancel(); // stop previous
+  window.speechSynthesis.speak(utterance);
 }
 
 // ─── TOAST NOTIFICATIONS ─────────────────────────────────────────
@@ -279,6 +294,8 @@ async function loadProfile() {
     document.getElementById('edit-name').value = data.name || "";
     document.getElementById('edit-native-lang').value = data.nativeLanguage || 'English';
     document.getElementById('edit-learning-lang').value = data.learningLanguages || 'Italian';
+    
+    window.userLevel = data.level || 1;
   } catch (err) {
     console.warn("Profile fetch error:", err);
   }
@@ -357,6 +374,18 @@ async function loadTranslations() {
       document.getElementById('ws-source').value = task.english || "";
       document.getElementById('ws-ai').value = task.automatedItalian || "";
       document.getElementById('ws-input').value = '';
+      
+      const bountyBadge = document.getElementById('ws-bounty-badge');
+      if (task.bountyXP && task.bountyXP > 0) {
+        document.getElementById('ws-bounty-val').innerText = task.bountyXP;
+        bountyBadge.style.display = 'inline-block';
+      } else {
+        bountyBadge.style.display = 'none';
+      }
+
+      // Rebind TTS
+      document.getElementById('tts-source').onclick = () => playTTS(task.english, 'en');
+      document.getElementById('tts-ai').onclick = () => playTTS(task.automatedItalian, activeLangCode);
     }
   } catch (err) {}
 }
@@ -450,9 +479,18 @@ async function loadReviews() {
 
     reviews.forEach(r => {
       const langName = LANG_NAMES[r.targetLanguage] || 'Translation';
-      const voteHTML = r.hasVoted 
-        ? `<button class="upvote-btn voted"><i class="ph ph-caret-up"></i> ${r.upvotes} Voted</button>`
-        : `<button class="upvote-btn render-vote" data-id="${r.id}"><i class="ph ph-caret-up"></i> ${r.upvotes} Upvote</button>`;
+      const isTrusted = window.userLevel >= 5;
+      
+      let voteHTML = '';
+      if (r.hasVoted) {
+         voteHTML = `<button class="upvote-btn voted"><i class="ph ph-caret-up"></i> ${r.upvotes} Voted</button>`;
+      } else {
+         if (isTrusted) {
+            voteHTML = `<button class="upvote-btn render-vote" data-id="${r.id}" style="background: rgba(241,196,15,0.1); border-color: rgba(241,196,15,0.4); color: #f1c40f;"><i class="ph ph-crown"></i> ${r.upvotes} Trusted Vote</button>`;
+         } else {
+            voteHTML = `<button class="upvote-btn render-vote" data-id="${r.id}"><i class="ph ph-caret-up"></i> ${r.upvotes} Upvote</button>`;
+         }
+      }
         
       container.innerHTML += `
         <div class="glass-card review-card pulse-hover">
@@ -482,8 +520,9 @@ async function loadReviews() {
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if(res.ok) {
+           const data = await res.json();
            await loadReviews();
-           showToast('Vote recorded! +10 XP to translator.');
+           showToast(`Vote recorded! ${data.isTrusted ? '+30 XP (Trusted)' : '+10 XP'} to translator.`);
         }
       });
     });

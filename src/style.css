@@ -184,12 +184,12 @@ body.theme-golden .glass-card { border-color: rgba(241, 196, 15, 0.15); }
 .lang-select {
   padding: 0.75rem 1rem; border-radius: 10px; background: var(--glass-bg); color: white;
   border: 1px solid var(--glass-border); outline: none; font-size: 0.95rem; cursor: pointer;
-  font-family: var(--font-family); transition: 0.2s; min-width: 160px;
+  font-family: var(--font-family); transition: 0.2s; min-width: 160px; height: 50px;
 }
 .lang-select:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
 .lang-select option { background: #1a1a2e; color: white; }
 
-.btn-translate-main { flex: 1; padding: 0.85rem; font-size: 1rem; }
+.btn-translate-main { flex: 1; height: 50px; font-size: 1rem; white-space: nowrap; }
 
 .ai-output-card { padding: 0; border-color: rgba(99,102,241,0.2); }
 .ai-output-header { 
