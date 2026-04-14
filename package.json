@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm rebuild sqlite3 --build-from-source && vite build",
     "preview": "vite preview",
     "start": "node server.js"
   },
