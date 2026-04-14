@@ -22,7 +22,7 @@ const DB_PATH = process.env.DATABASE_URL || './database.sqlite';
 
 // Security and Logging
 app.use(helmet({
-  contentSecurityPolicy: false, // Required for Google Sign-In button
+  contentSecurityPolicy: false,
 }));
 
 // CORS Configuration
@@ -44,6 +44,14 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   else console.log(`Connected to SQLite Database at ${DB_PATH}`);
 });
 
+// Supported languages map
+const LANG_MAP = {
+  it: 'Italian', es: 'Spanish', fr: 'French',
+  de: 'German', ja: 'Japanese', ko: 'Korean',
+  pt: 'Portuguese', zh: 'Chinese', ar: 'Arabic',
+  hi: 'Hindi', ru: 'Russian', nl: 'Dutch'
+};
+
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,16 +69,12 @@ db.serialize(() => {
     theme TEXT DEFAULT 'default'
   )`);
 
-  // Migration for theme and language columns
-  db.run("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'default'", (err) => { });
-  db.run("ALTER TABLE source_texts ADD COLUMN targetLanguage TEXT DEFAULT 'it'", (err) => { });
-  db.run("ALTER TABLE user_translations ADD COLUMN targetLanguage TEXT DEFAULT 'it'", (err) => { });
-
   db.run(`CREATE TABLE IF NOT EXISTS source_texts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     english TEXT,
     automatedItalian TEXT,
     submitterId INTEGER,
+    targetLanguage TEXT DEFAULT 'it',
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -80,6 +84,7 @@ db.serialize(() => {
     italian TEXT,
     translatedBy INTEGER,
     upvotes INTEGER DEFAULT 0,
+    targetLanguage TEXT DEFAULT 'it',
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(sourceId) REFERENCES source_texts(id),
     FOREIGN KEY(translatedBy) REFERENCES users(id)
@@ -92,13 +97,23 @@ db.serialize(() => {
     PRIMARY KEY (userId, translationId)
   )`);
 
+  // Safe migrations for existing DBs
+  db.run("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'default'", () => {});
+  db.run("ALTER TABLE source_texts ADD COLUMN targetLanguage TEXT DEFAULT 'it'", () => {});
+  db.run("ALTER TABLE user_translations ADD COLUMN targetLanguage TEXT DEFAULT 'it'", () => {});
+
   db.get("SELECT COUNT(*) AS count FROM source_texts", (err, row) => {
     if (row && row.count === 0) {
-      const stmt = db.prepare("INSERT INTO source_texts (english, automatedItalian) VALUES (?, ?)");
-      stmt.run("The quick brown fox jumps over the lazy dog.", "La veloce volpe marrone salta sul cane pigro.");
-      stmt.run("Could I please get a cup of coffee?", "Potrei avere una tazza di caffè, per favore?");
-      stmt.run("I think this application is quite wonderful.", "Penso che questa applicazione sia davvero meravigliosa.");
-      stmt.run("Learning new languages creates bridges across the world.", "Imparare nuove lingue crea ponti in tutto il mondo.");
+      const seeds = [
+        ["The quick brown fox jumps over the lazy dog.", "La veloce volpe marrone salta sul cane pigro.", "it"],
+        ["Could I please get a cup of coffee?", "Potrei avere una tazza di caffè, per favore?", "it"],
+        ["I think this application is quite wonderful.", "Penso che questa applicazione sia davvero meravigliosa.", "it"],
+        ["Learning new languages creates bridges across the world.", "Imparare nuove lingue crea ponti in tutto il mondo.", "it"],
+        ["Good morning, how are you today?", "Buenos días, ¿cómo estás hoy?", "es"],
+        ["The weather is beautiful this afternoon.", "Le temps est magnifique cet après-midi.", "fr"],
+      ];
+      const stmt = db.prepare("INSERT INTO source_texts (english, automatedItalian, targetLanguage) VALUES (?, ?, ?)");
+      seeds.forEach(s => stmt.run(...s));
       stmt.finalize();
     }
   });
@@ -153,6 +168,7 @@ const authGuard = async (req, res, next) => {
   });
 };
 
+// ─── AUTH ───────────────────────────────────────────────────────
 app.post('/api/auth/google', async (req, res) => {
   const { credential } = req.body;
   if (!credential) return res.status(400).json({ error: "Missing credential token" });
@@ -191,10 +207,14 @@ app.post('/api/auth/guest', (req, res) => {
     });
 });
 
+// ─── PROFILE ────────────────────────────────────────────────────
 app.get('/api/profile', authGuard, (req, res) => {
   db.get("SELECT COUNT(*) AS total FROM user_translations", (err, row) => {
     req.user.globalTranslations = row ? row.total : 0;
-    res.json(req.user);
+    db.get("SELECT COUNT(DISTINCT translatedBy) AS totalUsers FROM user_translations", (err, urow) => {
+      req.user.totalContributors = urow ? urow.totalUsers : 0;
+      res.json(req.user);
+    });
   });
 });
 
@@ -207,12 +227,29 @@ app.post('/api/profile/edit', authGuard, (req, res) => {
     });
 });
 
+// ─── STATS ──────────────────────────────────────────────────────
+app.get('/api/stats', (req, res) => {
+  db.get("SELECT COUNT(*) AS texts FROM source_texts", (err, t) => {
+    db.get("SELECT COUNT(*) AS translations FROM user_translations", (err, tr) => {
+      db.get("SELECT COUNT(DISTINCT translatedBy) AS contributors FROM user_translations", (err, c) => {
+        res.json({
+          totalTexts: t?.texts || 0,
+          totalTranslations: tr?.translations || 0,
+          totalContributors: c?.contributors || 0,
+          languages: Object.keys(LANG_MAP).length
+        });
+      });
+    });
+  });
+});
+
 app.get('/api/leaderboard', (req, res) => {
   db.all("SELECT id, name, xp as score, avatar, level FROM users ORDER BY xp DESC LIMIT 10", (err, rows) => {
     res.json(rows || []);
   });
 });
 
+// ─── TRANSLATION TASKS ─────────────────────────────────────────
 app.get('/api/tasks/pending', authGuard, (req, res) => {
   db.get(`
     SELECT s.* FROM source_texts s 
@@ -244,35 +281,62 @@ app.post('/api/translations', authGuard, (req, res) => {
     });
 });
 
+// ─── AI TRANSLATION ─────────────────────────────────────────────
 app.post('/api/translate/request', authGuard, async (req, res) => {
   const { text, targetLang = 'it' } = req.body;
-  if (!text) return res.status(400).json({ error: "Missing text" });
+  if (!text || text.trim().length === 0) return res.status(400).json({ error: "Missing text" });
 
   try {
-    // Free AI Translation API (MyMemory)
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
-    const response = await fetch(url);
+    const langCode = targetLang.toLowerCase().trim();
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.trim())}&langpair=en|${langCode}`;
+    
+    console.log(`[AI Translate] Requesting: en -> ${langCode} for "${text.substring(0, 50)}..."`);
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    
+    if (!response.ok) {
+      console.error(`[AI Translate] API returned status ${response.status}`);
+      return res.status(502).json({ error: "Translation service temporarily unavailable" });
+    }
+    
     const data = await response.json();
     
-    let translatedText = data.responseData.translatedText;
-    if (!translatedText || translatedText.includes("NO QUERY SPECIFIED")) {
-      translatedText = "Translation error fallback.";
+    let translatedText = data?.responseData?.translatedText;
+    if (!translatedText || translatedText.includes("NO QUERY SPECIFIED") || translatedText.includes("PLEASE SELECT TWO LANGUAGES")) {
+      console.error(`[AI Translate] Bad response:`, data?.responseData);
+      return res.status(422).json({ error: "Could not translate that text. Try a different phrase." });
     }
+
+    // Capitalize first letter properly
+    translatedText = translatedText.charAt(0).toUpperCase() + translatedText.slice(1);
 
     // Add to crowdsourced queue
     db.run("INSERT INTO source_texts (english, automatedItalian, submitterId, targetLanguage) VALUES (?, ?, ?, ?)",
-      [text, translatedText, req.user.id, targetLang], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true, aiTranslation: translatedText });
+      [text.trim(), translatedText, req.user.id, langCode], function(err) {
+        if (err) {
+          console.error(`[AI Translate] DB insert error:`, err);
+          // Still return the translation even if DB insert fails
+          return res.json({ success: true, aiTranslation: translatedText, langName: LANG_MAP[langCode] || langCode });
+        }
+        res.json({ success: true, aiTranslation: translatedText, langName: LANG_MAP[langCode] || langCode });
     });
   } catch (error) {
-    res.status(500).json({ error: "Translation API failed" });
+    console.error(`[AI Translate] Error:`, error.message);
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ error: "Translation timed out. Please try again." });
+    }
+    res.status(500).json({ error: "Translation service failed. Please try again." });
   }
 });
 
+// ─── REVIEWS ────────────────────────────────────────────────────
 app.get('/api/reviews', authGuard, (req, res) => {
   db.all(`
-    SELECT u.id, u.italian AS translatedText, s.english AS sourceText, usr.name, usr.avatar, u.upvotes 
+    SELECT u.id, u.italian AS translatedText, s.english AS sourceText, usr.name, usr.avatar, u.upvotes, u.targetLanguage
     FROM user_translations u 
     JOIN source_texts s ON u.sourceId = s.id 
     JOIN users usr ON u.translatedBy = usr.id
@@ -300,6 +364,7 @@ app.post('/api/translations/:id/vote', authGuard, (req, res) => {
   });
 });
 
+// ─── SHOP ───────────────────────────────────────────────────────
 app.post('/api/shop/buy', authGuard, (req, res) => {
   const { cost, itemName } = req.body;
   if (req.user.xp < cost) return res.status(400).json({ error: "Insufficient XP" });
@@ -319,7 +384,7 @@ app.post('/api/shop/buy', authGuard, (req, res) => {
   }
 });
 
-// Production Routing
+// ─── PRODUCTION ROUTING ─────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

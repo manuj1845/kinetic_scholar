@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kinetic Scholar - Professional</title>
+    <title>Kinetic Scholar — Crowdsourced Translation Platform</title>
+    <meta name="description" content="Kinetic Scholar is a gamified crowdsourced translation platform. Translate, verify, and earn XP while bridging language barriers worldwide." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,11 +18,13 @@
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="active-screen">
       <div class="login-card glass-card pulse-hover">
+        <div class="login-glow"></div>
         <div class="logo-area" style="justify-content: center;">
           <i class="ph ph-translate logo-icon"></i>
           <h1>Kinetic Scholar</h1>
         </div>
-        <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 2rem;">Advance humanity. Connect cultures.</p>
+        <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 0.5rem; font-size: 1.05rem;">Crowdsourced Translation Platform</p>
+        <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 2rem; font-size: 0.85rem; opacity: 0.7;">Translate. Verify. Earn XP. Bridge languages.</p>
         
         <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
           <div id="g_id_onload"
@@ -42,10 +45,10 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center; margin-top: 0.5rem;">
           <button id="guest-login-btn" class="btn btn-outline" style="width: 100%; border-style: dashed; color: var(--color-primary-light);">
-            <i class="ph ph-user-circle-plus"></i> Launch Guest Preview
+            <i class="ph ph-user-circle-plus"></i> Explore as Guest
           </button>
-          <p style="text-align: center; font-size: 0.85rem; color: var(--color-text-muted);">
-            <i class="ph ph-shield-check text-primary"></i> Enterprise Encrypted
+          <p style="text-align: center; font-size: 0.8rem; color: var(--color-text-muted); opacity: 0.6;">
+            <i class="ph ph-shield-check text-primary"></i> Secure OAuth 2.0
           </p>
         </div>
       </div>
@@ -61,11 +64,12 @@
         
         <ul class="nav-links">
           <li><a href="#" data-target="home" class="active"><i class="ph ph-squares-four"></i><span>Dashboard</span></a></li>
+          <li><a href="#" data-target="ai-hub"><i class="ph ph-magic-wand"></i><span>AI Translate</span></a></li>
           <li><a href="#" data-target="workspace"><i class="ph ph-pencil-simple-line"></i><span>Workspace</span></a></li>
           <li><a href="#" data-target="review"><i class="ph ph-users-three"></i><span>Peer Review</span></a></li>
           <li><a href="#" data-target="leaderboard"><i class="ph ph-trophy"></i><span>Leaderboard</span></a></li>
-          <li><a href="#" data-target="shop"><i class="ph ph-storefront"></i><span>Rewards Shop</span></a></li>
           <li><a href="#" data-target="explorer"><i class="ph ph-globe-hemisphere-west"></i><span>Languages</span></a></li>
+          <li><a href="#" data-target="shop"><i class="ph ph-storefront"></i><span>Rewards</span></a></li>
           <li><a href="#" data-target="profile"><i class="ph ph-user-gear"></i><span>Profile</span></a></li>
         </ul>
         
@@ -83,14 +87,14 @@
 
       <main id="main-content">
         
-        <!-- HOME SCREEN -->
+        <!-- HOME / DASHBOARD -->
         <section id="home" class="screen main-app-screen active-screen">
           <header class="screen-header">
             <div>
-              <h2>Dashboard Hub</h2>
-              <p id="dashboard-subtitle">Keep the momentum going!</p>
+              <h2>Dashboard</h2>
+              <p id="dashboard-subtitle">Welcome back! Keep the momentum going.</p>
             </div>
-            <button id="btn-new-translation" class="btn btn-primary"><i class="ph ph-rocket-launch"></i> Launch Workspace</button>
+            <button id="btn-new-translation" class="btn btn-primary"><i class="ph ph-rocket-launch"></i> Open Workspace</button>
           </header>
           
           <div class="dashboard-grid">
@@ -99,46 +103,81 @@
               <div class="stat-data"><h3 id="stat-global">0</h3><p>Global Tasks</p></div>
             </div>
             <div class="glass-card stat-card pulse-hover">
-              <div class="stat-icon"><i class="ph ph-check-circle"></i></div>
-              <div class="stat-data"><h3 id="stat-contributions">0</h3><p>Contributions</p></div>
+              <div class="stat-icon" style="background: linear-gradient(135deg, rgba(46,204,113,0.15), rgba(46,204,113,0.05)); border-color: rgba(46,204,113,0.2);"><i class="ph ph-check-circle" style="color: var(--color-success);"></i></div>
+              <div class="stat-data"><h3 id="stat-contributions">0</h3><p>Your Contributions</p></div>
             </div>
             <div class="glass-card stat-card pulse-hover">
-              <div class="stat-icon"><i class="ph ph-fire"></i></div>
-              <div class="stat-data"><h3 id="stat-streak">1 Days</h3><p>Active Streak</p></div>
+              <div class="stat-icon" style="background: linear-gradient(135deg, rgba(255,150,50,0.15), rgba(255,150,50,0.05)); border-color: rgba(255,150,50,0.2);"><i class="ph ph-fire" style="color: var(--color-warning);"></i></div>
+              <div class="stat-data"><h3 id="stat-streak">1 Day</h3><p>Active Streak</p></div>
             </div>
           </div>
 
-          <div class="glass-card pulse-hover" style="margin-top: 2.5rem; position: relative; overflow: hidden; border-top: 2px solid var(--color-primary-light);">
-            <!-- Premium background glow effect -->
-            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--color-primary); filter: blur(80px); opacity: 0.4; border-radius: 50%;"></div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; position: relative; z-index: 1;">
-                <h3 style="display: flex; align-items: center; gap: 0.5rem; color: #fff; margin: 0; font-size: 1.25rem;">
-                    <i class="ph ph-magic-wand" style="color: var(--color-primary-light);"></i> AI Translation Hub
-                </h3>
-                <span style="font-size: 0.65rem; background: rgba(99,102,241,0.2); color: var(--color-primary-light); padding: 0.35rem 0.6rem; border-radius: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;"><i class="ph ph-sparkle"></i> Neural Engine</span>
+          <!-- Quick actions -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+            <div class="glass-card pulse-hover quick-action-card" id="quick-ai-translate">
+              <i class="ph ph-lightning" style="font-size: 2rem; color: var(--color-primary-light);"></i>
+              <h3 style="margin-top: 0.75rem;">AI Translate</h3>
+              <p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5;">Translate any text instantly with AI. Results feed into the crowdsource pool.</p>
             </div>
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.6; position: relative; z-index: 1;">Generate instantaneous structural translations for free. Your requests safely enter our transparent crowdsource database for global human refinement.</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 1;">
-               <textarea id="ai-translate-input" placeholder="Type an English phrase here to see the magic..." style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; padding: 1.25rem; resize: vertical; outline: none; font-family: 'Inter', sans-serif; font-size: 1rem; transition: all 0.3s ease;" rows="3" onfocus="this.style.borderColor='var(--color-primary-light)'; this.style.boxShadow='0 0 0 2px rgba(99,102,241,0.2)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';"></textarea>
-               
-               <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem;">
-                 <select id="ai-translate-lang" style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); outline: none; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onfocus="this.style.borderColor='var(--color-primary-light)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-                   <option value="it" style="background:#1e1e2f;">🇮🇹 Italian</option>
-                   <option value="es" style="background:#1e1e2f;">🇪🇸 Spanish</option>
-                   <option value="fr" style="background:#1e1e2f;">🇫🇷 French</option>
-                   <option value="de" style="background:#1e1e2f;">🇩🇪 German</option>
-                   <option value="ja" style="background:#1e1e2f;">🇯🇵 Japanese</option>
-                   <option value="ko" style="background:#1e1e2f;">🇰🇷 Korean</option>
-                 </select>
-                 
-                 <button id="btn-ai-translate" class="btn btn-primary" style="flex: 1; padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;"><i class="ph ph-lightning" style="margin-right: 0.5rem;"></i> Request Translation</button>
-               </div>
+            <div class="glass-card pulse-hover quick-action-card" id="quick-workspace">
+              <i class="ph ph-pencil-simple-line" style="font-size: 2rem; color: var(--color-success);"></i>
+              <h3 style="margin-top: 0.75rem;">Crowdsource</h3>
+              <p style="color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5;">Help verify AI translations with your human expertise. Earn 50 XP per task.</p>
+            </div>
+          </div>
+        </section>
 
-               <div id="ai-translate-result" style="display: none; padding: 1.25rem; background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; font-size: 1.05rem; color: #fff; line-height: 1.6; margin-top: 0.5rem; position: relative;">
-                  <!-- Populated in JS, we will add a nice icon via JS but this acts as container -->
-               </div>
+        <!-- AI TRANSLATION HUB (full dedicated screen) -->
+        <section id="ai-hub" class="screen main-app-screen">
+          <header class="screen-header">
+            <div>
+              <h2>AI Translation Hub</h2>
+              <p>Instant neural translations powered by open-source engines. Free forever.</p>
+            </div>
+            <span class="engine-badge"><i class="ph ph-sparkle"></i> MyMemory Engine</span>
+          </header>
+
+          <div class="ai-hub-container">
+            <div class="glass-card ai-input-card">
+              <div class="ai-input-header">
+                <div class="ai-input-label"><i class="ph ph-file-text"></i> English (Source)</div>
+              </div>
+              <textarea id="ai-translate-input" placeholder="Type or paste any English text here..." rows="5"></textarea>
+            </div>
+
+            <div class="ai-controls">
+              <select id="ai-translate-lang" class="lang-select">
+                <option value="it">🇮🇹 Italian</option>
+                <option value="es">🇪🇸 Spanish</option>
+                <option value="fr">🇫🇷 French</option>
+                <option value="de">🇩🇪 German</option>
+                <option value="ja">🇯🇵 Japanese</option>
+                <option value="ko">🇰🇷 Korean</option>
+                <option value="pt">🇧🇷 Portuguese</option>
+                <option value="zh">🇨🇳 Chinese</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="hi">🇮🇳 Hindi</option>
+                <option value="ru">🇷🇺 Russian</option>
+                <option value="nl">🇳🇱 Dutch</option>
+              </select>
+              <button id="btn-ai-translate" class="btn btn-primary btn-translate-main">
+                <i class="ph ph-lightning"></i> Translate
+              </button>
+            </div>
+
+            <div class="glass-card ai-output-card" id="ai-translate-result" style="display: none;">
+              <div class="ai-output-header">
+                <span class="ai-output-label"><i class="ph ph-check-circle" style="color: var(--color-success)"></i> <span id="ai-result-lang-name">Translation</span></span>
+                <button class="btn-copy" id="btn-copy-result" title="Copy to clipboard"><i class="ph ph-copy"></i></button>
+              </div>
+              <div id="ai-result-text" class="ai-result-text"></div>
+              <p class="ai-crowdsource-note"><i class="ph ph-info"></i> This translation has been added to the crowdsource pool for human verification.</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="ai-empty-state" class="ai-empty-state">
+              <i class="ph ph-translate" style="font-size: 3rem; opacity: 0.3;"></i>
+              <p>Enter text above and select a language to get started</p>
             </div>
           </div>
         </section>
@@ -152,7 +191,6 @@
             </div>
           </header>
           <div class="review-feed" id="review-feed-container">
-            <!-- Populated dynamically via main.js -->
             <div style="text-align:center; padding: 2rem;"><i class="ph ph-spinner ph-spin" style="font-size: 2rem"></i></div>
           </div>
         </section>
@@ -164,7 +202,7 @@
                 <h2>Scholar Shop</h2>
                 <p>Spend your hard-earned XP to unlock exclusive profile rewards.</p>
               </div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary-light); background: var(--glass-bg); padding: 0.5rem 1rem; border-radius: 12px;">
+              <div class="wallet-badge">
                 <i class="ph ph-coin"></i> <span id="shop-wallet">0</span> XP
               </div>
             </header>
@@ -180,7 +218,7 @@
                 <div class="glass-card shop-card pulse-hover" style="border-color: rgba(241, 196, 15, 0.3)">
                     <div class="shop-icon">👑</div>
                     <h3>Golden Theme</h3>
-                    <p style="color: var(--color-text-muted); font-size: 0.9rem;">Paint the entire application UI inside a premium Golden Hue.</p>
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem;">Paint the entire app UI inside a premium Golden hue.</p>
                     <div class="shop-cost" style="color: #f1c40f"><i class="ph ph-coin"></i> 1000</div>
                     <button class="btn btn-outline select-shop-item" data-item="golden_name" data-cost="1000" style="width: 100%; margin-top: auto">Unlock</button>
                 </div>
@@ -191,8 +229,8 @@
         <section id="workspace" class="screen main-app-screen">
           <header class="screen-header">
             <div>
-              <h2>Workspace Active</h2>
-              <p>Translate contextually to assist the language models.</p>
+              <h2>Translation Workspace</h2>
+              <p>Improve AI output with your human expertise. Earn 50 XP per contribution.</p>
             </div>
             <div class="btn btn-outline" id="workspace-lang-display">
               English <i class="ph ph-arrows-left-right text-primary" style="margin: 0 0.5rem"></i> <span id="ws-target-lang-label">Italian</span>
@@ -201,20 +239,19 @@
 
           <div class="workspace-area">
             <div class="glass-card editor source-text">
-              <div style="display: flex; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="ph ph-file-text"></i> SOURCE TEXT (English)</div>
-              <textarea placeholder="Loading connection..." readonly id="ws-source"></textarea>
+              <div class="editor-label"><i class="ph ph-file-text"></i> SOURCE TEXT (English)</div>
+              <textarea placeholder="Loading next task..." readonly id="ws-source"></textarea>
             </div>
-            <div class="glass-card editor automated-text" style="background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.2);">
-              <div style="display: flex; gap: 0.5rem; color: var(--color-primary-light); font-size: 0.85rem; margin-bottom: 0.5rem; align-items: center;">
-                <i class="ph ph-robot"></i> AUTOMATED MODEL <span style="margin-left: auto; background: rgba(99, 102, 241, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Premium</span>
-              </div>
-              <textarea placeholder="Awaiting API..." readonly id="ws-ai"></textarea>
+            <div class="glass-card editor automated-text">
+              <div class="editor-label" style="color: var(--color-primary-light);"><i class="ph ph-robot"></i> AI SUGGESTION <span class="editor-tag">Auto</span></div>
+              <textarea placeholder="Awaiting task..." readonly id="ws-ai"></textarea>
             </div>
-            <div class="glass-card editor target-text" style="background: rgba(46, 204, 113, 0.05); border-color: rgba(46, 204, 113, 0.3);">
-              <div style="display: flex; gap: 0.5rem; color: var(--color-success); font-size: 0.85rem; margin-bottom: 0.5rem;"><i class="ph ph-pencil-simple-line"></i> CROWDSOURCED INPUT</div>
-              <textarea placeholder="Enter human translation..." id="ws-input"></textarea>
+            <div class="glass-card editor target-text">
+              <div class="editor-label" style="color: var(--color-success);"><i class="ph ph-pencil-simple-line"></i> YOUR TRANSLATION</div>
+              <textarea placeholder="Enter your improved translation here..." id="ws-input"></textarea>
               <div class="editor-actions">
-                <button class="btn btn-primary submit-btn">Submit Segment <i class="ph ph-paper-plane-right"></i></button>
+                <span style="font-size: 0.8rem; color: var(--color-text-muted);"><i class="ph ph-coin"></i> +50 XP per submission</span>
+                <button class="btn btn-primary submit-btn">Submit <i class="ph ph-paper-plane-right"></i></button>
               </div>
             </div>
           </div>
@@ -225,7 +262,7 @@
           <header class="screen-header">
             <div>
               <h2>Global Rankings</h2>
-              <p>Elite contributors securing language preservation.</p>
+              <p>Top contributors preserving languages worldwide.</p>
             </div>
           </header>
           <div class="glass-card" style="max-width: 700px; margin: 0 auto; padding: 0;">
@@ -235,13 +272,13 @@
 
         <!-- PROFILE -->
         <section id="profile" class="screen main-app-screen">
-           <header class="screen-header"><h2>Profile Configuration</h2></header>
+           <header class="screen-header"><div><h2>Profile Settings</h2><p>Configure your translation preferences.</p></div></header>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
             <div>
               <div class="glass-card" style="display:flex; align-items:center; gap: 1.5rem; margin-bottom: 1.5rem;">
                   <img src="" id="profile-picture" alt="Avatar" style="width: 100px; height: 100px; border-radius: 20px; object-fit: cover;" referrerpolicy="no-referrer"/>
                   <div>
-                    <h2 id="profile-display-name">Alex Mercer</h2>
+                    <h2 id="profile-display-name">User</h2>
                     <p id="profile-display-email" style="color: var(--color-primary-light);">Email</p>
                     <p id="profile-display-langs" style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Native: English</p>
                   </div>
@@ -255,7 +292,7 @@
               </div>
             </div>
             <div class="glass-card">
-              <h3 style="margin-bottom: 1.5rem;">Edit Properties</h3>
+              <h3 style="margin-bottom: 1.5rem;">Edit Preferences</h3>
               <form id="profile-edit-form">
                 <div class="form-group"><label>Display Name</label><input type="text" id="edit-name" required /></div>
                 <div class="form-group">
@@ -266,19 +303,25 @@
                     <option value="French">French</option>
                     <option value="Italian">Italian</option>
                     <option value="German">German</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Arabic">Arabic</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label>Target Specialization</label>
                   <select id="edit-learning-lang">
                     <option value="Italian">Italian</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="French">French</option>
                     <option value="German">German</option>
                     <option value="Japanese">Japanese</option>
                     <option value="Korean">Korean</option>
+                    <option value="Portuguese">Portuguese</option>
                     <option value="Arabic">Arabic</option>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-primary" id="btn-save-profile" style="width: 100%; margin-top: 1rem;">Deploy Changes</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-profile" style="width: 100%; margin-top: 1rem;">Save Changes</button>
               </form>
             </div>
           </div>
@@ -287,15 +330,15 @@
         <!-- EXPLORER -->
         <section id="explorer" class="screen main-app-screen">
           <header class="screen-header">
-            <div><h2>Pioneering Horizons</h2><p>Unlock new structural paradigms across the globe.</p></div>
+            <div><h2>Language Explorer</h2><p>Choose a language and start translating.</p></div>
           </header>
           <div class="explorer-grid">
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #27ae60"><div class="lang-flag">🇮🇹</div><h3>Italian</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="it" data-name="Italian" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e74c3c"><div class="lang-flag">🇪🇸</div><h3>Spanish</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="es" data-name="Spanish" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e67e22"><div class="lang-flag">🇯🇵</div><h3>Japanese</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="ja" data-name="Japanese" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #3498db"><div class="lang-flag">🇫🇷</div><h3>French</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="fr" data-name="French" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #9b59b6"><div class="lang-flag">🇩🇪</div><h3>German</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="de" data-name="German" style="width:100%; margin-top:auto;">Translate Segment</button></div>
-            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #34495e"><div class="lang-flag">🇰🇷</div><h3>Korean</h3><button class="btn btn-outline nav-redirect-workspace" data-lang="ko" data-name="Korean" style="width:100%; margin-top:auto;">Translate Segment</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #27ae60"><div class="lang-flag">🇮🇹</div><h3>Italian</h3><p class="lang-desc">Romance language, 85M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="it" data-name="Italian" style="width:100%; margin-top:auto;">Translate</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e74c3c"><div class="lang-flag">🇪🇸</div><h3>Spanish</h3><p class="lang-desc">Romance language, 559M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="es" data-name="Spanish" style="width:100%; margin-top:auto;">Translate</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #e67e22"><div class="lang-flag">🇯🇵</div><h3>Japanese</h3><p class="lang-desc">Japonic language, 125M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="ja" data-name="Japanese" style="width:100%; margin-top:auto;">Translate</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #3498db"><div class="lang-flag">🇫🇷</div><h3>French</h3><p class="lang-desc">Romance language, 321M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="fr" data-name="French" style="width:100%; margin-top:auto;">Translate</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #9b59b6"><div class="lang-flag">🇩🇪</div><h3>German</h3><p class="lang-desc">Germanic language, 132M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="de" data-name="German" style="width:100%; margin-top:auto;">Translate</button></div>
+            <div class="glass-card lang-card pulse-hover" style="border-top: 3px solid #34495e"><div class="lang-flag">🇰🇷</div><h3>Korean</h3><p class="lang-desc">Koreanic language, 81M speakers</p><button class="btn btn-outline nav-redirect-workspace" data-lang="ko" data-name="Korean" style="width:100%; margin-top:auto;">Translate</button></div>
           </div>
         </section>
 
